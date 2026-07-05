@@ -3,121 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herd Tracker Pro</title>
+    <title>Dlamini Farm Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styling for the blurred image background */
-        .bg-farm-blur {
-            background-image: url('tizaWnPbIKmbRSr-800x450-noPad.jpg'); /* The file you uploaded in Step 1 */
+        /* Immersive background using your custom uploaded picture */
+        .bg-farm {
+            background-image: url('tizaWnPbIKmbRSr-800x450-noPad.jpg');
             background-size: cover;
             background-position: center;
-            filter: blur(8px) brightness(0.7); /* Applied to background only */
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1; /* Puts background behind content */
+            z-index: -2;
         }
-        /* Style the rounded menu card and options */
-        .menu-card {
-            background-color: rgba(255, 255, 255, 0.9); /* Slightly translucent white */
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        /* Dark tint layer to make text readable */
+        .bg-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+        }
+        /* Frosted glass styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        /* Tab switching rules */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
     </style>
 </head>
-<body class="font-sans min-h-screen text-gray-800 antialiased">
+<body class="font-sans min-h-screen text-white antialiased">
 
-    <!-- The fixed, blurred background layer -->
-    <div class="bg-farm-blur"></div>
+    <!-- Background layers -->
+    <div class="bg-farm"></div>
+    <div class="bg-overlay"></div>
 
-    <!-- Main Content Container -->
-    <main class="container mx-auto p-4 max-w-5xl relative z-10">
-
-        <!-- Navigation/Status Bar (as seen in image_1.png) -->
-        <nav class="flex justify-between items-center bg-transparent py-4 text-white">
-            <h1 class="text-xl font-semibold tracking-wide">Herd Net</h1>
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-mono">11:44</span>
-                <div class="w-6 h-6 rounded-full bg-green-500 border-2 border-white"></div> <!-- Online Status -->
+    <!-- Main Container -->
+    <main class="container mx-auto p-4 max-w-md min-h-screen flex flex-col justify-between relative z-10">
+        
+        <!-- ================= TAB 1: WELCOME HOME SCREEN ================= -->
+        <div id="tab-home" class="tab-content active flex-grow flex flex-col justify-between py-6">
+            <!-- Top Header -->
+            <div class="text-center mt-4">
+                <span id="gate-status-badge" class="bg-gray-600/80 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm transition-colors">
+                    🛑 Gate System: IDLE
+                </span>
+                <h1 class="text-4xl font-black tracking-tight mt-4 drop-shadow-md">
+                    Welcome to<br><span class="text-green-400">Dlamini Farm</span>
+                </h1>
+                <p class="text-gray-300 text-sm mt-2">Manage herds and monitor physical gate hardware</p>
             </div>
-        </nav>
 
-        <!-- Main Menu Section with Integrated Image -->
-        <section class="menu-card p-6 rounded-3xl shadow-xl mb-6 relative overflow-hidden">
-            <!-- Semi-transparent overlay holding the actual menu content -->
-            <div class="absolute inset-0 bg-black/30 z-0"></div>
-            
-            <!-- Content overlaying the background-image -->
-            <div class="relative z-10">
-                <h2 class="text-3xl font-bold text-white mb-6 text-center">Main Menu</h2>
+            <!-- Middle Hardware Control Box (Simulating the physical gate button) -->
+            <div class="glass-card p-4 rounded-2xl my-4 text-center">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">🎛️ Hardware Simulator (Gate Button)</h3>
+                <p class="text-xs text-gray-400 mb-3">Simulate pressing the hardware button at the gate from your phone:</p>
+                <button onclick="simulatePhysicalButtonPress()" class="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold py-2.5 px-6 rounded-xl text-sm transition-all active:scale-95 shadow-md w-full">
+                    🔘 Press Gate Button
+                </button>
+                <p id="hardware-instruction" class="text-xs text-yellow-300 font-medium mt-2">Current System State: Standing by...</p>
+            </div>
+
+            <!-- Bottom Herd Target Buttons -->
+            <div class="glass-card p-5 rounded-3xl shadow-2xl space-y-3">
+                <button onclick="switchTab('tab-cows')" class="w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6">
+                    <span class="flex items-center gap-3"><span>🐮</span> Cows Herd</span>
+                    <span class="text-gray-400 text-sm">View Logs →</span>
+                </button>
                 
-                <!-- Goats/Cows Option Toggles (image_1.png concept) -->
-                <div class="grid grid-cols-2 gap-4">
-                    <!-- Goat Option -->
-                    <label class="flex items-center gap-4 bg-white/20 p-4 rounded-xl cursor-pointer border-2 border-transparent hover:border-white/50 transition">
-                        <input type="radio" name="herdSelect" value="goats" class="w-6 h-6 accent-green-600">
-                        <span class="text-5xl">🐐</span>
-                        <span class="text-2xl font-semibold text-white">Goats</span>
-                    </label>
+                <button onclick="switchTab('tab-goats')" class="w-full bg-green-600 text-white font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-between px-6">
+                    <span class="flex items-center gap-3"><span>🐐</span> Goats Herd</span>
+                    <span class="text-green-200 text-sm">View Logs →</span>
+                </button>
+            </div>
+        </div>
 
-                    <!-- Cow Option (Pre-selected in the design) -->
-                    <label class="flex items-center gap-4 bg-white/20 p-4 rounded-xl cursor-pointer border-2 border-green-400/80 transition">
-                        <input type="radio" name="herdSelect" value="cows" checked class="w-6 h-6 accent-green-600">
-                        <span class="text-5xl">🐮</span>
-                        <span class="text-2xl font-semibold text-white">Cows</span>
-                    </label>
+        <!-- ================= TAB 2: COWS HERD INFORMATION ================= -->
+        <div id="tab-cows" class="tab-content py-4">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="switchTab('tab-home')" class="bg-white/10 px-4 py-2 rounded-xl text-sm font-medium hover:bg-white/20 backdrop-blur-sm">
+                    ← Main Menu
+                </button>
+                <span class="text-xl font-bold">🐮 Cows Roster</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-300 uppercase">Present</p>
+                    <p class="text-2xl font-bold text-green-400">994 / 1,000</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-300 uppercase">Absent Alerts</p>
+                    <p class="text-2xl font-bold text-red-400">6</p>
                 </div>
             </div>
-        </section>
 
-        <!-- Dynamic Data Section (Displays results based on selection) -->
-        <section id="data-display" class="bg-white rounded-3xl shadow-lg p-6 overflow-hidden">
-            <div class="flex justify-between items-center mb-4 pb-2 border-b">
-                <h3 id="herd-title" class="text-xl font-bold text-gray-700">Cows Herd - Morning Clock-In (July 5, 2026)</h3>
-                <span class="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Synced Live</span>
+            <div class="bg-white text-gray-900 rounded-3xl p-4 shadow-xl">
+                <h3 class="font-bold text-gray-700 border-b pb-2 mb-3 text-sm flex justify-between items-center">
+                    <span>Real-Time Logs browser data</span>
+                    <span id="cow-pulse" class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+                </h3>
+                <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border-l-4 border-green-500">
+                        <div><p class="font-bold text-sm">Cow #0841</p><p class="text-xs text-gray-400">08:32 AM</p></div>
+                        <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-1 rounded">IN</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border-l-4 border-green-500">
+                        <div><p class="font-bold text-sm">Cow #0112</p><p class="text-xs text-gray-400">08:30 AM</p></div>
+                        <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-1 rounded">IN</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border-l-4 border-red-500">
+                        <div><p class="font-bold text-sm">Cow #0042</p><p class="text-xs text-gray-400">Missing</p></div>
+                        <span class="text-xs bg-red-100 text-red-800 font-bold px-2 py-1 rounded">ABSENT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB 3: GOATS HERD INFORMATION ================= -->
+        <div id="tab-goats" class="tab-content py-4">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="switchTab('tab-home')" class="bg-white/10 px-4 py-2 rounded-xl text-sm font-medium hover:bg-white/20 backdrop-blur-sm">
+                    ← Main Menu
+                </button>
+                <span class="text-xl font-bold">🐐 Goats Roster</span>
             </div>
 
-            <!-- The generated data table (filtered for Cows) -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="text-xs text-gray-500 uppercase tracking-wider bg-gray-50 border-b">
-                        <tr>
-                            <th class="p-4">Date</th>
-                            <th class="p-4">Time</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-gray-100">
-                        <!-- Sample data (Cows) -->
-                        <tr>
-                            <td class="p-4 font-mono">2026-07-05</td>
-                            <td class="p-4 font-mono">08:30 AM</td>
-                            <td class="p-4 text-green-600 font-medium">✓ Present</td>
-                            <td class="p-4"><button class="text-gray-400 hover:text-green-700">📄 Details</button></td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 font-mono">2026-07-05</td>
-                            <td class="p-4 font-mono">08:31 AM</td>
-                            <td class="p-4 text-green-600 font-medium">✓ Present</td>
-                            <td class="p-4"><button class="text-gray-400 hover:text-green-700">📄 Details</button></td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 font-mono">2026-07-05</td>
-                            <td class="p-4 font-mono">---</td>
-                            <td class="p-4 text-red-600 font-bold">⚠️ Absent</td>
-                            <td class="p-4"><button class="text-gray-400 hover:text-red-700">💬 Contact</button></td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-300 uppercase">Present</p>
+                    <p class="text-2xl font-bold text-green-400">450 / 450</p>
+                </div>
+                <div class="glass-card p-4 rounded-2xl text-center">
+                    <p class="text-xs text-gray-300 uppercase">Absent Alerts</p>
+                    <p class="text-2xl font-bold text-gray-400">0</p>
+                </div>
             </div>
-        </section>
+
+            <div class="bg-white text-gray-900 rounded-3xl p-4 shadow-xl">
+                <h3 class="font-bold text-gray-700 border-b pb-2 mb-3 text-sm flex justify-between items-center">
+                    <span>Real-Time Logs browser data</span>
+                    <span id="goat-pulse" class="w-2.5 h-2.5 rounded-full bg-gray-400"></span>
+                </h3>
+                <div class="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border-l-4 border-green-500">
+                        <div><p class="font-bold text-sm">Goat #0014</p><p class="text-xs text-gray-400">08:45 AM</p></div>
+                        <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-1 rounded">IN</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border-l-4 border-green-500">
+                        <div><p class="font-bold text-sm">Goat #0089</p><p class="text-xs text-gray-400">08:41 AM</p></div>
+                        <span class="text-xs bg-green-100 text-green-800 font-bold px-2 py-1 rounded">IN</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </main>
 
+    <!-- JavaScript Application Logic -->
     <script>
-        // Placeholder for future database connection logic (e.g., Firebase)
-        // This script will detect radio button changes and fetch the appropriate herd data.
-        console.log("Interface Loaded. Waiting for database configuration.");
+        // System State Tracking Variable (Mirroring the ESP32 logic)
+        // States: 0 = IDLE, 1 = CLOCKING_IN, 2 = CLOCKING_OUT
+        let systemState = 0; 
+
+        // 1. Navigation Controller
+        function switchTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 2. State-Machine Handler (Simulating the physical hardware button actions)
+        function simulatePhysicalButtonPress() {
+            const statusBadge = document.getElementById('gate-status-badge');
+            const instructionText = document.getElementById('hardware-instruction');
+            const cowPulse = document.getElementById('cow-pulse');
+            const goatPulse = document.getElementById('goat-pulse');
+
+            if (systemState === 0) {
+                // Change from IDLE to CLOCKING IN
+                systemState = 1;
+                statusBadge.className = "bg-blue-600 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm animate-pulse";
+                statusBadge.innerText = "⚡ State: CLOCKING IN...";
+                instructionText.innerText = "RFID Scanner active. Press button again when all animals are in.";
+                
+                // Activate green dynamic indicators inside herd panels
+                cowPulse.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping";
+                goatPulse.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping";
+                alert("Gate Cycle Started: Morning Clock-In scanning initiated across browser nodes.");
+            } 
+            else if (systemState === 1) {
+                // Change from CLOCKING IN to CLOCKING OUT
+                systemState = 2;
+                statusBadge.className = "bg-orange-600 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm animate-pulse";
+                statusBadge.innerText = "⚡ State: CLOCKING OUT...";
+                instructionText.innerText = "Clock-In data finalized! Afternoon Scanner open. Press again to finish day.";
+                
+                cowPulse.className = "w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping";
+                goatPulse.className = "w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping";
+                alert("Clock-In Closed: Roster evaluated. Missing notification sent via WhatsApp gateway simulation!");
+            } 
+            else if (systemState === 2) {
+                // Reset from CLOCKING OUT back to IDLE
+                systemState = 0;
+                statusBadge.className = "bg-gray-600/80 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm";
+                statusBadge.innerText = "🛑 Gate System: IDLE";
+                instructionText.innerText = "Current System State: Standing by...";
+                
+                cowPulse.className = "w-2.5 h-2.5 rounded-full bg-gray-400";
+                goatPulse.className = "w-2.5 h-2.5 rounded-full bg-gray-400";
+                alert("Day Cycle Complete: Clock-out tables updated and synchronized directly to remote cloud architecture.");
+            }
+        }
     </script>
 </body>
 </html>
