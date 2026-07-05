@@ -73,21 +73,21 @@
             <p id="hardware-instruction" class="text-xs text-yellow-300 font-medium mt-2">Current System State: Standing by...</p>
         </div>
 
-        <!-- Bottom Herd Navigation (Style matches the expanded screen themes) -->
+        <!-- Bottom Herd Navigation (Starts unselected/neutral white) -->
         <div class="glass-card p-5 rounded-3xl shadow-2xl space-y-3">
-            <button onclick="openSubTab('view-cows')" class="w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-gray-400">
+            <button id="btn-cows" onclick="activateAndOpen('cows', 'view-cows')" class="w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-gray-300">
                 <span class="flex items-center gap-3"><span>🐮</span> Cows Herd</span>
-                <span class="text-gray-400 text-sm">Open Panel →</span>
+                <span id="txt-cows" class="text-gray-400 text-sm">Open Panel →</span>
             </button>
             
-            <button onclick="openSubTab('view-goats')" class="w-full bg-green-600 text-white font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-green-700 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-green-400">
+            <button id="btn-goats" onclick="activateAndOpen('goats', 'view-goats')" class="w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-gray-300">
                 <span class="flex items-center gap-3"><span>🐐</span> Goats Herd</span>
-                <span class="text-green-200 text-sm">Open Panel →</span>
+                <span id="txt-goats" class="text-gray-400 text-sm">Open Panel →</span>
             </button>
         </div>
     </main>
 
-    <!-- ================= DEDICATED COWS TAB SCREEN (Light Background Theme) ================= -->
+    <!-- ================= DEDICATED COWS TAB SCREEN ================= -->
     <div id="view-cows" class="sub-tab-view bg-gray-100 text-gray-900 p-4">
         <div class="max-w-md mx-auto min-h-screen flex flex-col pt-2">
             <!-- Back Navigation Bar -->
@@ -134,7 +134,7 @@
         </div>
     </div>
 
-    <!-- ================= DEDICATED GOATS TAB SCREEN (Green Background Theme) ================= -->
+    <!-- ================= DEDICATED GOATS TAB SCREEN ================= -->
     <div id="view-goats" class="sub-tab-view bg-green-950 text-white p-4">
         <div class="max-w-md mx-auto min-h-screen flex flex-col pt-2">
             <!-- Back Navigation Bar -->
@@ -179,20 +179,48 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-        // System State Tracking Variable (0 = IDLE, 1 = CLOCKING_IN, 2 = CLOCKING_OUT)
         let systemState = 0; 
 
-        // 1. Full-Screen Tab Open / Close Engine
-        function openSubTab(tabId) {
-            document.getElementById(tabId).classList.add('active');
-            document.getElementById('view-home').style.display = 'none'; // Hide menu viewport completely
+        // 1. Dynamic Selection & Overlay Management
+        function activateAndOpen(type, viewId) {
+            const btnCows = document.getElementById('btn-cows');
+            const btnGoats = document.getElementById('btn-goats');
+            const txtCows = document.getElementById('txt-cows');
+            const txtGoats = document.getElementById('txt-goats');
+
+            // Reset both styles completely first
+            resetButtonStyles();
+
+            // Apply selected properties based on selection instance
+            if (type === 'cows') {
+                btnCows.className = "w-full bg-gray-200 text-gray-950 font-bold text-lg p-4 rounded-2xl shadow-inner transition-all flex items-center justify-between px-6 border-l-8 border-gray-500 scale-[0.99]";
+                txtCows.className = "text-gray-600 text-sm font-semibold";
+            } else if (type === 'goats') {
+                btnGoats.className = "w-full bg-green-600 text-white font-bold text-lg p-4 rounded-2xl shadow-inner transition-all flex items-center justify-between px-6 border-l-8 border-green-400 scale-[0.99]";
+                txtGoats.className = "text-green-200 text-sm font-semibold";
+            }
+
+            // Short transition window so user sees the change right before viewport navigation swap
+            setTimeout(() => {
+                document.getElementById(viewId).classList.add('active');
+                document.getElementById('view-home').style.display = 'none';
+                window.scrollTo(0, 0);
+            }, 120);
+        }
+
+        function closeSubTab(viewId) {
+            document.getElementById(viewId).classList.remove('active');
+            document.getElementById('view-home').style.display = 'flex';
+            resetButtonStyles(); // Return buttons back to default look on arrival
             window.scrollTo(0, 0);
         }
 
-        function closeSubTab(tabId) {
-            document.getElementById(tabId).classList.remove('active');
-            document.getElementById('view-home').style.display = 'flex'; // Restore main viewport
-            window.scrollTo(0, 0);
+        function resetButtonStyles() {
+            document.getElementById('btn-cows').className = "w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-gray-300";
+            document.getElementById('btn-goats').className = "w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-gray-300";
+            
+            document.getElementById('txt-cows').className = "text-gray-400 text-sm";
+            document.getElementById('txt-goats').className = "text-gray-400 text-sm";
         }
 
         // 2. State-Machine Handler (Simulating the physical hardware button actions)
