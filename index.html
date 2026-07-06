@@ -63,7 +63,7 @@
             <p class="text-gray-300 text-sm mt-2">Manage herds and monitor physical gate hardware</p>
         </div>
 
-        <!-- Middle Hardware Control Box (Simulating the physical gate button) -->
+        <!-- Middle Hardware Control Box -->
         <div class="glass-card p-4 rounded-2xl my-4 text-center">
             <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">🎛️ Hardware Simulator (Gate Button)</h3>
             <p class="text-xs text-gray-400 mb-3">Simulate pressing the hardware button at the gate from your phone:</p>
@@ -73,7 +73,7 @@
             <p id="hardware-instruction" class="text-xs text-yellow-300 font-medium mt-2">Current System State: Standing by...</p>
         </div>
 
-        <!-- Bottom Herd Navigation (Starts unselected/neutral white) -->
+        <!-- Bottom Herd Navigation -->
         <div class="glass-card p-5 rounded-3xl shadow-2xl space-y-3">
             <button id="btn-cows" onclick="activateAndOpen('cows', 'view-cows')" class="w-full bg-white text-gray-900 font-bold text-lg p-4 rounded-2xl shadow-lg hover:bg-gray-100 active:scale-[0.98] transition-all flex items-center justify-between px-6 border-l-8 border-gray-300">
                 <span class="flex items-center gap-3"><span>🐮</span> Cows Herd</span>
@@ -179,19 +179,28 @@
 
     <!-- JavaScript Application Logic -->
     <script>
+        // System States:
+        // 0 = IDLE
+        // 1 = CLOCKING_IN_ACTIVE (Recording morning session)
+        // 2 = CLOCK_IN_STOPPED (Morning data compiled)
+        // 3 = CLOCKING_OUT_ACTIVE (Recording afternoon session)
         let systemState = 0; 
 
-        // 1. Dynamic Selection & Overlay Management
+        // Helper function to generate accurate timestamp string
+        function getRealtimeTimestamp() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+
+        // Navigation Controller
         function activateAndOpen(type, viewId) {
             const btnCows = document.getElementById('btn-cows');
             const btnGoats = document.getElementById('btn-goats');
             const txtCows = document.getElementById('txt-cows');
             const txtGoats = document.getElementById('txt-goats');
 
-            // Reset both styles completely first
             resetButtonStyles();
 
-            // Apply selected properties based on selection instance
             if (type === 'cows') {
                 btnCows.className = "w-full bg-gray-200 text-gray-950 font-bold text-lg p-4 rounded-2xl shadow-inner transition-all flex items-center justify-between px-6 border-l-8 border-gray-500 scale-[0.99]";
                 txtCows.className = "text-gray-600 text-sm font-semibold";
@@ -200,7 +209,6 @@
                 txtGoats.className = "text-green-200 text-sm font-semibold";
             }
 
-            // Short transition window so user sees the change right before viewport navigation swap
             setTimeout(() => {
                 document.getElementById(viewId).classList.add('active');
                 document.getElementById('view-home').style.display = 'none';
@@ -211,7 +219,7 @@
         function closeSubTab(viewId) {
             document.getElementById(viewId).classList.remove('active');
             document.getElementById('view-home').style.display = 'flex';
-            resetButtonStyles(); // Return buttons back to default look on arrival
+            resetButtonStyles();
             window.scrollTo(0, 0);
         }
 
@@ -223,34 +231,50 @@
             document.getElementById('txt-goats').className = "text-gray-400 text-sm";
         }
 
-        // 2. State-Machine Handler (Simulating the physical hardware button actions)
+        // Updated State-Machine matching the strict 2-press per session logic
         function simulatePhysicalButtonPress() {
             const statusBadge = document.getElementById('gate-status-badge');
             const instructionText = document.getElementById('hardware-instruction');
             const cowPulse = document.getElementById('cow-pulse');
             const goatPulse = document.getElementById('goat-pulse');
 
+            const timestamp = getRealtimeTimestamp();
+
+            // Press 1: Activate Morning Clock-In Recording
             if (systemState === 0) {
                 systemState = 1;
                 statusBadge.className = "bg-blue-600 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm animate-pulse";
-                statusBadge.innerText = "⚡ State: CLOCKING IN...";
-                instructionText.innerText = "RFID Scanner active. Press button again when all animals are in.";
+                statusBadge.innerText = "⚡ CLOCK-IN: RECORDING";
+                instructionText.innerText = "System active! Taking tag data... Press button again to stop recording.";
                 
                 cowPulse.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping";
                 goatPulse.className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping";
-                alert("Gate Cycle Started: Morning Clock-In scanning initiated across browser nodes.");
+                alert(`Session Started: Morning Clock-In initiated at ${timestamp}. Scanner reading active tags...`);
             } 
+            // Press 2: Stop Morning Session & Output Record Update
             else if (systemState === 1) {
                 systemState = 2;
+                statusBadge.className = "bg-indigo-700 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm";
+                statusBadge.innerText = "📥 CLOCK-IN: COMPILED";
+                instructionText.innerText = "Morning session saved. Press again to activate Afternoon Clock-Out.";
+                
+                cowPulse.className = "w-2.5 h-2.5 rounded-full bg-indigo-500";
+                goatPulse.className = "w-2.5 h-2.5 rounded-full bg-indigo-500";
+                alert(`Session Stopped at ${timestamp}!\n\nUpdate Record:\n- Cows Present: 994/1000\n- Goats Present: 450/450\n- Alerts: 6 missing cows detected.`);
+            } 
+            // Press 3: Activate Afternoon Clock-Out Recording
+            else if (systemState === 2) {
+                systemState = 3;
                 statusBadge.className = "bg-orange-600 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm animate-pulse";
-                statusBadge.innerText = "⚡ State: CLOCKING OUT...";
-                instructionText.innerText = "Clock-In data finalized! Afternoon Scanner open. Press again to finish day.";
+                statusBadge.innerText = "⚡ CLOCK-OUT: RECORDING";
+                instructionText.innerText = "Afternoon recording active! Press button again to finalize the day.";
                 
                 cowPulse.className = "w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping";
                 goatPulse.className = "w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping";
-                alert("Clock-In Closed: Roster evaluated. Missing notification sent via WhatsApp gateway simulation!");
-            } 
-            else if (systemState === 2) {
+                alert(`Session Started: Afternoon Clock-Out initialized at ${timestamp}. Processing outbound tags...`);
+            }
+            // Press 4: Stop Afternoon Session & Reset to Idle
+            else if (systemState === 3) {
                 systemState = 0;
                 statusBadge.className = "bg-gray-600/80 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-sm";
                 statusBadge.innerText = "🛑 Gate System: IDLE";
@@ -258,7 +282,7 @@
                 
                 cowPulse.className = "w-2.5 h-2.5 rounded-full bg-gray-400";
                 goatPulse.className = "w-2.5 h-2.5 rounded-full bg-gray-400";
-                alert("Day Cycle Complete: Clock-out tables updated and synchronized directly to remote cloud architecture.");
+                alert(`Session Stopped at ${timestamp}!\n\nFinal Day Record:\n- Clock-out cycle completed successfully.\n- Remote database cloud synchronization successful.`);
             }
         }
     </script>
