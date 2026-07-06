@@ -63,8 +63,24 @@
             <p class="text-gray-300 text-sm mt-2">Manage herds and monitor physical gate hardware</p>
         </div>
 
+        <!-- NEW: Notification Target Configuration -->
+        <div class="glass-card p-4 rounded-2xl my-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-green-400 mb-2 flex items-center gap-1.5">
+                💬 WhatsApp Gateway Configuration
+            </h3>
+            <p class="text-xs text-gray-300 mb-2.5">Set the mobile number to receive automated herd summaries:</p>
+            <div class="flex gap-2">
+                <input type="tel" id="whatsapp-number" placeholder="e.g., +27821234567" 
+                    class="bg-gray-900/60 border border-white/20 text-white rounded-xl px-3 py-2 text-sm flex-grow focus:outline-none focus:border-green-400 transition-colors">
+                <button onclick="saveNotificationNumber()" class="bg-green-600 hover:bg-green-700 font-bold text-xs px-4 rounded-xl transition-all active:scale-95 shadow-md">
+                    Save
+                </button>
+            </div>
+            <p id="save-confirmation" class="text-[10px] text-gray-400 mt-1.5 transition-all hidden">✓ Phone number updated successfully!</p>
+        </div>
+
         <!-- Middle Hardware Control Box -->
-        <div class="glass-card p-4 rounded-2xl my-4 text-center">
+        <div class="glass-card p-4 rounded-2xl my-3 text-center">
             <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">🎛️ Hardware Simulator (Gate Button)</h3>
             <p class="text-xs text-gray-400 mb-3">Simulate pressing the hardware button at the gate from your phone:</p>
             <button onclick="simulatePhysicalButtonPress()" class="bg-yellow-500 hover:bg-yellow-600 text-gray-950 font-bold py-2.5 px-6 rounded-xl text-sm transition-all active:scale-95 shadow-md w-full">
@@ -179,14 +195,28 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-        // System States:
-        // 0 = IDLE
-        // 1 = CLOCKING_IN_ACTIVE (Recording morning session)
-        // 2 = CLOCK_IN_STOPPED (Morning data compiled)
-        // 3 = CLOCKING_OUT_ACTIVE (Recording afternoon session)
         let systemState = 0; 
 
-        // Helper function to generate accurate timestamp string
+        // Load saved phone number from browser local storage on startup if it exists
+        window.addEventListener('DOMContentLoaded', () => {
+            const storedNumber = localStorage.getItem('farm_whatsapp_num');
+            if(storedNumber) {
+                document.getElementById('whatsapp-number').value = storedNumber;
+            }
+        });
+
+        function saveNotificationNumber() {
+            const inputVal = document.getElementById('whatsapp-number').value.trim();
+            if(inputVal) {
+                localStorage.setItem('farm_whatsapp_num', inputVal);
+                const conf = document.getElementById('save-confirmation');
+                conf.classList.remove('hidden');
+                setTimeout(() => conf.classList.add('hidden'), 3000);
+            } else {
+                alert("Please enter a valid phone number format.");
+            }
+        }
+
         function getRealtimeTimestamp() {
             const now = new Date();
             return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -231,12 +261,13 @@
             document.getElementById('txt-goats').className = "text-gray-400 text-sm";
         }
 
-        // Updated State-Machine matching the strict 2-press per session logic
+        // State-Machine matching the strict 2-press per session logic
         function simulatePhysicalButtonPress() {
             const statusBadge = document.getElementById('gate-status-badge');
             const instructionText = document.getElementById('hardware-instruction');
             const cowPulse = document.getElementById('cow-pulse');
             const goatPulse = document.getElementById('goat-pulse');
+            const targetNum = localStorage.getItem('farm_whatsapp_num') || "unconfigured number";
 
             const timestamp = getRealtimeTimestamp();
 
@@ -260,7 +291,8 @@
                 
                 cowPulse.className = "w-2.5 h-2.5 rounded-full bg-indigo-500";
                 goatPulse.className = "w-2.5 h-2.5 rounded-full bg-indigo-500";
-                alert(`Session Stopped at ${timestamp}!\n\nUpdate Record:\n- Cows Present: 994/1000\n- Goats Present: 450/450\n- Alerts: 6 missing cows detected.`);
+                
+                alert(`[WhatsApp Gateway Node Active]\nSending Morning update to: ${targetNum}\n\nStopped at: ${timestamp}\n- Cows Present: 994/1000\n- Goats Present: 450/450\n- Alerts: 6 missing.`);
             } 
             // Press 3: Activate Afternoon Clock-Out Recording
             else if (systemState === 2) {
@@ -282,7 +314,8 @@
                 
                 cowPulse.className = "w-2.5 h-2.5 rounded-full bg-gray-400";
                 goatPulse.className = "w-2.5 h-2.5 rounded-full bg-gray-400";
-                alert(`Session Stopped at ${timestamp}!\n\nFinal Day Record:\n- Clock-out cycle completed successfully.\n- Remote database cloud synchronization successful.`);
+                
+                alert(`[WhatsApp Gateway Node Active]\nSending Final EOD summary to: ${targetNum}\n\nCycle Completed at: ${timestamp}.\nCloud database synchronization successful!`);
             }
         }
     </script>
